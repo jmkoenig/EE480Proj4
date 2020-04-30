@@ -16,7 +16,7 @@
 `define HighBits	[15:8]
 `define LowBits		[7:0]
 
-//4 bit op codes
+// 4 bit op codes
 `define LdOrSt		1'h4
 `define TrapOrJr	1'h0
 `define OPci8		1'hb
@@ -31,20 +31,13 @@
 `define OPnop		2'h02
 `define OPld		2'h40
 `define OPst		2'h41
+
+// ALU
 `define OPnot		2'h10
-`define OPi2f		2'h20
-`define OPii2pp		2'h21
-`define OPf2i		2'h22
-`define OPpp2ii		2'h23
-`define OPinvf		2'h24
-`define OPinvpp		2'h25
-`define OPf2pp		2'h26
-`define OPpp2f		2'h27
 `define OPanyi		2'h30
 `define OPanyii		2'h31
 `define OPnegi		2'h32
 `define OPnegii		2'h33
-`define OPnegf		2'h34
 `define OPand		2'h50
 `define OPor		2'h51
 `define OPxor		2'h52
@@ -61,6 +54,18 @@
 `define OPshii		2'h75
 `define OPslti		2'h76
 `define OPsltii		2'h77
+
+// FPU
+`define OPi2f		2'h20
+`define OPii2pp		2'h21
+`define OPf2i		2'h22
+`define OPpp2ii		2'h23
+`define OPinvf		2'h24
+`define OPinvpp		2'h25
+`define OPf2pp		2'h26
+`define OPpp2f		2'h27
+`define OPnegf		2'h28
+
 `define NOP		16'b0000001000000001
 
 module fpu(rd,rs,op,fpuOut);
@@ -167,6 +172,7 @@ module processor(halt, reset, clk);
 	reg wait1;		// is a stall needed in stage 1
 
 	alu myalu(rd1, rs1, op, aluOut);
+	fpu myfpu(rd1, rs1, op, fpuOut);
 	
 	//processor initialization
 	always @(posedge reset) begin
@@ -326,9 +332,12 @@ module processor(halt, reset, clk);
 						jump <= 1;
 					end
 				end
-			default: //default cases are handled by ALU
+			default: //default cases are handled by ALU or FPU
 				begin
-					regfile [ir1 `Reg0] <= aluOut;
+					if (op >= 2'h20) && (op <= 2'h28)
+						regfile [ir1 `Reg0] <= fpuOut;
+					else
+						regfile [ir1 `Reg0] <= aluOut;
 					jump <= 0;
 				end
 		endcase	
