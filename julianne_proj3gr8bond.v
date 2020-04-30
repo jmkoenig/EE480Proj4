@@ -74,6 +74,22 @@
 `define FFRAC		[6:0]	// fractional part (leading 1 implied)
 `define FSIGN		[15]	// sign bit
 
+// Count leading zeros, 16-bit (5-bit result) d=lead0s(s)
+module lead0s(d, s);
+	output wire [4:0] d;
+	input wire `WORD s;
+	wire [4:0] t;
+	wire [7:0] s8;
+	wire [3:0] s4;
+	wire [1:0] s2;
+	assign t[4] = 0;
+	assign {t[3],s8} = ((|s[15:8]) ? {1'b0,s[15:8]} : {1'b1,s[7:0]});
+	assign {t[2],s4} = ((|s8[7:4]) ? {1'b0,s8[7:4]} : {1'b1,s8[3:0]});
+	assign {t[1],s2} = ((|s4[3:2]) ? {1'b0,s4[3:2]} : {1'b1,s4[1:0]});
+	assign t[0] = !s2[1];
+	assign d = (s ? t : 16);
+endmodule
+
 
 // Floating-point addition, 16-bit r=a+b
 module fadd(r, a, b);
