@@ -88,7 +88,7 @@ module fpu(rd,rs,op,fpuOut);
 			`OPmulpp: fpuOut <= table16[{rd,rs}][15:8];
 			`OPnegf:
 			`OPinvf: 
-			`OPinvpp: fpuOut <= {table8a[rd[15:8]], table8b[rd[7:0]]};
+			`OPinvpp: fpuOut <= {table8a[rd[15:8]][39:32], table8b[rd[7:0]][39:32]};
 			//Conversion
 			`OPf2i:
 			`OPf2pp: fpuOut <= table16[{rd,rs}][7:0];
