@@ -29,7 +29,7 @@
 // 8 bit op codes
 `define OPtrap		8'b00000000
 `define OPjr 		8'b00000001
-`define OPnop           8'b00000010
+`define OPnop		8'b00000010
 `define OPld		8'b01000000
 `define OPst		8'b01000001
 `define OPnot		8'b00010000
@@ -59,6 +59,28 @@
 `define OPslti		8'b01110110
 `define OPsltii		8'b01110111
 `define NOP		16'b0000001000000001
+
+module fpu(rd,rs,op,fpuOut);
+	always @* begin
+		case (op)
+			//Math
+			`OPaddf: 
+			`OPaddpp: 
+			`OPmulf: 
+			`OPmulpp: 
+			`OPnegf:
+			`OPinvf: 
+			`OPinvpp:
+			//Conversion
+			`OPf2i:
+			`OPf2pp:
+			`OPi2f: 
+			`OPii2pp: 
+			`OPpp2f: 
+			`OPpp2ii: 
+		endcase
+	end
+endmodule
 
 module alu(rd, rs, op, aluOut);
 	input `WORD rd;
@@ -94,16 +116,7 @@ module alu(rd, rs, op, aluOut);
 				out `HighBits= rd `HighBits < rs `HighBits; 
 				out `LowBits = rd `LowBits < rs `LowBits; 
 			end
-			`OPaddp: begin out = rd `WORD + rs `WORD; end
-			`OPaddpp: begin 
-				out `HighBits = rd `HighBits + rs `HighBits; 
-				out `LowBits = rd `LowBits + rs `LowBits;
-			end
-			`OPmulp: begin out = rd `WORD * rs `WORD; end
-			`OPmulpp: begin 
-				out `HighBits = rd `HighBits * rs `HighBits; 
-				out `LowBits = rd `LowBits * rs `LowBits; 
-			end
+
 			`OPand: begin out = rd & rs; end
 			`OPor: begin out = rd | rs; end
 			`OPxor: begin out = rd ^ rs; end
@@ -117,12 +130,6 @@ module alu(rd, rs, op, aluOut);
 				out `HighBits = -rd `HighBits; 
 				out `LowBits = -rd `LowBits; 
 			end
-			`OPi2p: begin out = rd; end
-			`OPii2pp: begin out = rd; end
-			`OPp2i: begin out = rd; end
-			`OPpp2ii: begin out = rd; end
-			`OPinvp: begin out = 0; end
-			`OPinvpp: begin out = 0; end
 			`OPnot: begin out = ~rd; end	
 		endcase	
 	end
