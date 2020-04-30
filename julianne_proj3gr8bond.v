@@ -64,6 +64,10 @@
 `define NOP		16'b0000001000000001
 
 module fpu(rd,rs,op,fpuOut);
+	input 'WORD rd;
+	input wire 'WORD rs;
+	input wire 'OPSIZE op;
+	output wire 'WORD fpuOut
 	always @* begin
 		case (op)
 			//Math
@@ -181,8 +185,8 @@ module processor(halt, reset, clk);
 		//The following functions read from VMEM?
 		$readmemh0(text);
 		$readmemh1(data);
-		$readmemh2(table16);
-		$readmemh3(table8);
+		//$readmemh2(table16);
+		//$readmemh3(table8);
 	end
 	
 	//checks if the destination register is set
