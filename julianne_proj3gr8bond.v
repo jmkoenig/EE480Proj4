@@ -334,7 +334,7 @@ module processor(halt, reset, clk);
 				end
 			default: //default cases are handled by ALU or FPU
 				begin
-					if ((op >= 2'h20) && (op <= 2'h28)) || ((op >= 2'h60) && (op <= 2h'63))
+					if ((op >= `OPi2f) && (op <= `OPnegf)) || ((op >= `OPaddf) && (op <= `OPmulpp))
 						regfile [ir1 `Reg0] <= fpuOut;
 					else
 						regfile [ir1 `Reg0] <= aluOut;
