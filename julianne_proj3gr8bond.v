@@ -267,7 +267,8 @@ module alu(rd, rs, op, aluOut);
 				out `HighBits = -rd `HighBits; 
 				out `LowBits = -rd `LowBits; 
 			end
-			`OPnot: begin out = ~rd; end	
+			`OPnot: begin out = ~rd; end
+			`OPdup: begin: out = rs; end
 		endcase	
 	end
 endmodule
