@@ -68,6 +68,47 @@
 
 `define NOP		16'b0000001000000001
 
+
+
+// Floating-point addition, 16-bit r=a+b
+module fadd(r, a, b);
+	output wire `FLOAT r;
+	input wire `FLOAT a, b;
+	wire `FLOAT s;
+	wire [8:0] sexp, sman, sfrac;
+	wire [7:0] texp, taman, tbman;
+	wire [4:0] slead;
+	wire ssign, aegt, amgt, eqsgn;
+	assign r = ((a == 0) ? b : ((b == 0) ? a : s));
+	assign aegt = (a `FEXP > b `FEXP);
+	assign texp = (aegt ? (a `FEXP) : (b `FEXP));
+	assign taman = (aegt ? {1'b1, (a `FFRAC)} : ({1'b1, (a `FFRAC)} >> (texp - a `FEXP)));
+	assign tbman = (aegt ? ({1'b1, (b `FFRAC)} >> (texp - b `FEXP)) : {1'b1, (b `FFRAC)});
+	assign eqsgn = (a `FSIGN == b `FSIGN);
+	assign amgt = (taman > tbman);
+	assign sman = (eqsgn ? (taman + tbman) : (amgt ? (taman - tbman) : (tbman - taman)));
+	lead0s m0(slead, {sman, 7'b0});
+	assign ssign = (amgt ? (a `FSIGN) : (b `FSIGN));
+	assign sfrac = sman << slead;
+	assign sexp = (texp + 1) - slead;
+	assign s = (sman ? (sexp ? {ssign, sexp[7:0], sfrac[7:1]} : 0) : 0);
+endmodule
+
+
+// Floating-point multiply, 16-bit r=a*b
+module fmul(r, a, b);
+	output wire `FLOAT r;
+	input wire `FLOAT a, b;
+	wire [15:0] m; // double the bits in a fraction, we need high bits
+	wire [7:0] e;
+	wire s;
+	assign s = (a `FSIGN ^ b `FSIGN);
+	assign m = ({1'b1, (a `FFRAC)} * {1'b1, (b `FFRAC)});
+	assign e = (((a `FEXP) + (b `FEXP)) -127 + m[15]);
+	assign r = (((a == 0) || (b == 0)) ? 0 : (m[15] ? {s, e, m[14:8]} : {s, e, m[13:7]}));
+endmodule
+
+
 module fpu(rd,rs,op,fpuOut);
 	input 'WORD rd;
 	input wire 'WORD rs;
