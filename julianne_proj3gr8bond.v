@@ -7,7 +7,6 @@
 `define DEST		[15:0]
 
 //Instruction Field Placements
-//NOTE: I could be wrong about these, I generated them from Dr. Deitz's assembler implementation
 `define OP		[15:8]
 `define Op0		[15:12]
 `define Op1		[11:8]
@@ -205,10 +204,10 @@ module processor(halt, reset, clk);
 	//check if rd is used
 	function usesrs;
 	input `WORD inst;
-	usesrs = !((inst `OP != `OPaddi) && (inst `OP != `OPaddii) && (inst `OP != `OPaddp) && (inst `OP != `OPaddpp) && 
-		   (inst `OP != `OPld) && (inst `OP != `OPand) && (inst `OP != `OPmuli) && (inst `OP != `OPmulii) && 
-		   (inst `OP != `OPmulp) && (inst `OP != `OPmulpp) && (inst `OP != `OPshi) && (inst `OP != `OPshii) && 
-		   (inst `OP != `OPslti) && (inst `OP != `OPst) && (inst `OP != `OPxor));
+		usesrs = !((inst `OP != `OPaddi) && (inst `OP != `OPaddii) && (inst `OP != `OPaddf) && (inst `OP != `OPaddpp) && 
+			(inst `OP != `OPld) && (inst `OP != `OPand) && (inst `OP != `OPmuli) && (inst `OP != `OPmulii) && 
+			(inst `OP != `OPmulf) && (inst `OP != `OPmulpp) && (inst `OP != `OPshi) && (inst `OP != `OPshii) && 
+		   	(inst `OP != `OPslti) && (inst `OP != `OPst) && (inst `OP != `OPxor));
 	endfunction
 	
 	//is pc changing
