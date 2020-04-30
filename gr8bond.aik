@@ -14,8 +14,8 @@
 	     0x40 ld st }
 
 .r1 $.d		:=	.this:8 0:4 .d:4
-.alias .r1 { 0x30 anyi anyii negi negii negf
-	     0x20 i2f ii2pp f2i pp2ii invf invpp f2pp pp2f
+.alias .r1 { 0x30 anyi anyii negi negii
+	     0x20 i2f ii2pp f2i pp2ii invf invpp f2pp pp2f negf
 	     0x10 not
 	     0x01 jr }
 
