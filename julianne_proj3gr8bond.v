@@ -160,7 +160,7 @@ module processor(halt, reset, clk);
 	reg `WORD pc = 0;
 	reg `WORD ir;
 	reg `WORD regfile `REGSIZE;		// Register File Size
-	wire `WORD aluOut;
+	wire `WORD aluOut, fpuOut;
 	reg `DEST target;	// jump target
 	//new variables
 	reg jump;
