@@ -42,10 +42,6 @@
 `define OPor		2'h51
 `define OPxor		2'h52
 `define OPdup		2'h53
-`define OPaddf		2'h60
-`define OPaddpp		2'h61
-`define OPmulf		2'h62
-`define OPmulpp		2'h63
 `define OPaddi		2'h70
 `define OPaddii		2'h71
 `define OPmuli		2'h72
@@ -65,6 +61,10 @@
 `define OPf2pp		2'h26
 `define OPpp2f		2'h27
 `define OPnegf		2'h28
+`define OPaddf		2'h60
+`define OPaddpp		2'h61
+`define OPmulf		2'h62
+`define OPmulpp		2'h63
 
 `define NOP		16'b0000001000000001
 
@@ -160,7 +160,7 @@ module processor(halt, reset, clk);
 	reg `WORD pc = 0;
 	reg `WORD ir;
 	reg `WORD regfile `REGSIZE;		// Register File Size
-	wire `WORD aluOut;
+	wire `WORD aluOut, fpuOut;
 	reg `DEST target;	// jump target
 	//new variables
 	reg jump;
@@ -334,7 +334,7 @@ module processor(halt, reset, clk);
 				end
 			default: //default cases are handled by ALU or FPU
 				begin
-					if (op >= 2'h20) && (op <= 2'h28)
+					if ((op >= `OPi2f) && (op <= `OPnegf)) || ((op >= `OPaddf) && (op <= `OPmulpp))
 						regfile [ir1 `Reg0] <= fpuOut;
 					else
 						regfile [ir1 `Reg0] <= aluOut;
