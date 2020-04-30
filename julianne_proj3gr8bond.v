@@ -68,6 +68,11 @@
 
 `define NOP		16'b0000001000000001
 
+//Floating Point Stuff
+`define FLOAT		[15:0]
+`define FEXP		[14:7]	// exponent
+`define FFRAC		[6:0]	// fractional part (leading 1 implied)
+`define FSIGN		[15]	// sign bit
 
 
 // Floating-point addition, 16-bit r=a+b
