@@ -74,6 +74,7 @@
 `define FFRAC		[6:0]	// fractional part (leading 1 implied)
 `define FSIGN		[15]	// sign bit
 
+
 // Count leading zeros, 16-bit (5-bit result) d=lead0s(s)
 module lead0s(d, s);
 	output wire [4:0] d;
@@ -148,16 +149,16 @@ module fpu(rd,rs,op,fpuOut);
 			`OPaddpp: fpuOut <= table16[{rd,rs}][23:16];
 			`OPmulf: 
 			`OPmulpp: fpuOut <= table16[{rd,rs}][15:8];
-			`OPnegf:
+			`OPnegf: fpuOut <= rd[15:15] ^ rd[15:15];
 			`OPinvf: 
-			`OPinvpp: fpuOut <= {table8a[rd[15:8]][39:32], table8b[rd[7:0]][39:32]};
+			`OPinvpp: fpuOut <= {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
 			//Conversion
 			`OPf2i:
 			`OPf2pp: fpuOut <= table16[{rd,rs}][7:0];
 			`OPi2f: 
-			`OPii2pp: 
-			`OPpp2f: 
-			`OPpp2ii: 
+			`OPii2pp: fpuOut <= {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]}
+			`OPpp2f: fpuOut <= table8[rd `LowBits][31:16]
+			`OPpp2ii: fpuOut <= {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]}
 		endcase
 	end
 endmodule
