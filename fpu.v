@@ -8,15 +8,15 @@ module fpu(rd,rs,op,fpuOut);
 		case (op)
 			//Math
 			`OPaddf: fpuOut <= table16[
-			`OPaddpp: 
+			`OPaddpp: fpuOut <= table16[{rd,rs}][23:16];
 			`OPmulf: 
-			`OPmulpp: 
+			`OPmulpp: fpuOut <= table16[{rd,rs}][15:8];
 			`OPnegf:
 			`OPinvf: 
 			`OPinvpp:
 			//Conversion
 			`OPf2i:
-			`OPf2pp:
+			`OPf2pp: fpuOut <= table16[{rd,rs}][7:0];
 			`OPi2f: 
 			`OPii2pp: 
 			`OPpp2f: 
