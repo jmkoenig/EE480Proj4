@@ -178,6 +178,8 @@ module processor(halt, reset, clk);
 		//The following functions read from VMEM?
 		$readmemh0(text);
 		$readmemh1(data);
+		$readmemh2(table16);
+		$readmemh3(table8);
 	end
 	
 	//checks if the destination register is set
