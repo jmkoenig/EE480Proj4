@@ -73,19 +73,25 @@ module fpu(rd,rs,op,fpuOut);
 	input wire 'WORD rs;
 	input wire 'OPSIZE op;
 	output wire 'WORD fpuOut
+	$readmemh2(table16);
+	$readmemh3(table8);
+	reg [23:0] table16[65535:0]
+	reg [39:0] table8a[255:0]
+	reg [39:0] table8b[255:0]
+	
 	always @* begin
 		case (op)
 			//Math
 			`OPaddf: 
-			`OPaddpp: 
+			`OPaddpp: fpuOut <= table16[{rd,rs}][23:16];
 			`OPmulf: 
-			`OPmulpp: 
+			`OPmulpp: fpuOut <= table16[{rd,rs}][15:8];
 			`OPnegf:
 			`OPinvf: 
-			`OPinvpp:
+			`OPinvpp: fpuOut <= {table8a[rd[15:8]], table8b[rd[7:0]]};
 			//Conversion
 			`OPf2i:
-			`OPf2pp:
+			`OPf2pp: fpuOut <= table16[{rd,rs}][7:0];
 			`OPi2f: 
 			`OPii2pp: 
 			`OPpp2f: 
