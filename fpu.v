@@ -7,7 +7,7 @@ module fpu(rd,rs,op,fpuOut);
 	always @* begin
 		case (op)
 			//Math
-			`OPaddf: 
+			`OPaddf: fpuOut <= table16[
 			`OPaddpp: 
 			`OPmulf: 
 			`OPmulpp: 
