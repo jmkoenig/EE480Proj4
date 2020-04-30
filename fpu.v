@@ -1,8 +1,11 @@
 module fpu(rd,rs,op,fpuOut);
+	$readmemh2(table16);
+	$readmemh3(table8);
 	reg [23:0] a[65535:0]
 	reg [23:0] b[65535:0]
 	reg [39:0] c[255:0]
 	reg [39:0] d[255:0]
+	
 	always @* begin
 		case (op)
 			//Math
