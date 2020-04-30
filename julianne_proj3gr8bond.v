@@ -1,3 +1,14 @@
+/*
+Notes:
+	VMEM0: Instruction Memory
+	VMEM1: Data Memory
+	VMEM2: 16-bit lookup table
+	VMEM3: 8-bit lookup table
+	VMEM4: Inverse float lookup table
+
+*/
+
+
 // Basic sizes
 `define OPSIZE		[7:0]
 `define STATE		[3:0]
@@ -130,32 +141,77 @@ module fmul(r, a, b);
 	assign r = (((a == 0) || (b == 0)) ? 0 : (m[15] ? {s, e, m[14:8]} : {s, e, m[13:7]}));
 endmodule
 
+// Floating-point reciprocal, 16-bit r=1.0/a
+// Note: requires initialized inverse fraction lookup table
+module frecip(r, a);
+	output wire `FLOAT r;
+	input wire `FLOAT a;
+	reg [6:0] look[127:0];
+	initial $readmemh4(look);
+	assign r `FSIGN = a `FSIGN;
+	assign r `FEXP = 253 + (!(a `FFRAC)) - a `FEXP;
+	assign r `FFRAC = look[a `FFRAC];
+endmodule
+
+// Float to integer conversion, 16 bit
+// Note: out-of-range values go to -32768 or 32767
+module f2i(i, f);
+	output wire `INT i;
+	input wire `FLOAT f;
+	wire `FLOAT ui;
+	wire tiny, big;
+	fslt m0(tiny, f, `F32768);
+	fslt m1(big, `F32767, f);
+	assign ui = {1'b1, f `FFRAC, 16'b0} >> ((128+22) - f `FEXP);
+	assign i = (tiny ? 0 : (big ? 32767 : (f `FSIGN ? (-ui) : ui)));
+endmodule
+
+// Integer to float conversion, 16 bit
+module i2f(f, i);
+output wire `FLOAT f;
+input wire `INT i;
+wire [4:0] lead;
+wire `WORD pos;
+assign pos = (i[15] ? (-i) : i);
+lead0s m0(lead, pos);
+assign f `FFRAC = (i ? ({pos, 8'b0} >> (16 - lead)) : 0);
+assign f `FSIGN = i[15];
+assign f `FEXP = (i ? (128 + (14 - lead)) : 0);
+endmodule
 
 module fpu(rd,rs,op,fpuOut);
-	input 'WORD rd;
-	input wire 'WORD rs;
-	input wire 'OPSIZE op;
-	output wire 'WORD fpuOut
-	$readmemh2(table16);
-	$readmemh3(table8);
+	input `WORD rd;
+	input wire `WORD rs;
+	input wire `OPSIZE op;
+	output wire `WORD fpuOut, addfOut, invfOut, f2iOut, i2fOut;
+	wire `WORD mulfOut;
+	initial begin
+		$readmemh2(table16);
+		$readmemh3(table8);
+	end
 	reg [23:0] table16[65535:0]
 	reg [39:0] table8a[255:0]
 	reg [39:0] table8b[255:0]
+	fmul mulf(mulfOut, rd, rs);
+	fadd addf(addfOut, rd, rs);
+	frecip invf(invfOut, rd);
+	f2i fl2int(f2iOut, rd);
+	i2f int2fl(i2fOut, rd);
 	
 	always @* begin
 		case (op)
 			//Math
-			`OPaddf: 
+			`OPaddf: fpuOut <= addfOut;
 			`OPaddpp: fpuOut <= table16[{rd,rs}][23:16];
-			`OPmulf: 
+			`OPmulf: fpuOut <= mulfOut;
 			`OPmulpp: fpuOut <= table16[{rd,rs}][15:8];
 			`OPnegf: fpuOut <= rd[15:15] ^ rd[15:15];
-			`OPinvf: 
+			`OPinvf: fpuOut <= invfOut;
 			`OPinvpp: fpuOut <= {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
 			//Conversion
-			`OPf2i:
+			`OPf2i: fpuOut <= f2iOut;
 			`OPf2pp: fpuOut <= table16[{rd,rs}][7:0];
-			`OPi2f: 
+			`OPi2f: fpuOut <= i2fOut;
 			`OPii2pp: fpuOut <= {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]}
 			`OPpp2f: fpuOut <= table8[rd `LowBits][31:16]
 			`OPpp2ii: fpuOut <= {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]}
