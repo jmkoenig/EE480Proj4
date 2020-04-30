@@ -1,7 +1,3 @@
-// Important State Machine States
-`define Start		4'b1000
-`define Decode  	4'b1001
-
 // Basic sizes
 `define OPSIZE		[7:0]
 `define STATE		[3:0]
