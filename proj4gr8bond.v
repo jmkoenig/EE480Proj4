@@ -8,6 +8,23 @@ Notes:
 
 */
 
+//Change these to switch between CGI and iVerilog
+//Uncomment for CGI, comment for Icarus
+/*
+`define LOADTEXT	$readmemh0(text)
+`define LOADDATA	$readmemh1(data)
+`define LOAD16		$readmemh2(table16)
+`define LOAD8		$readmemh3(table8)
+`define LOADINVF	$readmemh4(look)
+*/
+
+//Uncomment for Icarus, comment for CGI
+`define LOADTEXT	$readmemh("text.vmem", text)
+`define LOADDATA	$readmemh("data.vmem", data)
+`define LOAD16		$readmemh("posit1624.vmem", table16)
+`define LOAD8		$readmemh("posit840.vmem", table8)
+`define LOADINVF	$readmemh("invF.vmem", look)
+
 
 // Basic sizes
 `define OPSIZE		[7:0]
@@ -80,10 +97,17 @@ Notes:
 `define NOP		16'b0000001000000001
 
 //Floating Point Stuff
+//Field Definitions
+`define	INT			signed [15:0]	// integer size
 `define FLOAT		[15:0]
 `define FEXP		[14:7]	// exponent
 `define FFRAC		[6:0]	// fractional part (leading 1 implied)
 `define FSIGN		[15]	// sign bit
+
+// Constants
+`define	FZERO	16'b0	  // float 0
+`define F32767  16'h46ff  // closest approx to 32767, actually 32640
+`define F32768  16'hc700  // -32768
 
 
 // Count leading zeros, 16-bit (5-bit result) d=lead0s(s)
@@ -102,6 +126,14 @@ module lead0s(d, s);
 	assign d = (s ? t : 16);
 endmodule
 
+// Float set-less-than, 16-bit (1-bit result) torf=a<b
+module fslt(torf, a, b);
+output wire torf;
+input wire `FLOAT a, b;
+assign torf = (a `FSIGN && !(b `FSIGN)) ||
+	      (a `FSIGN && b `FSIGN && (a[14:0] > b[14:0])) ||
+	      (!(a `FSIGN) && !(b `FSIGN) && (a[14:0] < b[14:0]));
+endmodule
 
 // Floating-point addition, 16-bit r=a+b
 module fadd(r, a, b);
@@ -147,7 +179,7 @@ module frecip(r, a);
 	output wire `FLOAT r;
 	input wire `FLOAT a;
 	reg [6:0] look[127:0];
-	initial $readmemh4(look);
+	initial `LOADINVF;
 	assign r `FSIGN = a `FSIGN;
 	assign r `FEXP = 253 + (!(a `FFRAC)) - a `FEXP;
 	assign r `FFRAC = look[a `FFRAC];
@@ -183,14 +215,18 @@ module fpu(rd,rs,op,fpuOut);
 	input `WORD rd;
 	input wire `WORD rs;
 	input wire `OPSIZE op;
-	output wire `WORD fpuOut, addfOut, invfOut, f2iOut, i2fOut;
-	wire `WORD mulfOut;
+	output wire `WORD fpuOut;
+	wire `WORD addfOut, invfOut, f2iOut, i2fOut, mulfOut;
+
+	reg [23:0] table16[65535:0];
+	reg [39:0] table8[255:0];
 	initial begin
-		reg [23:0] table16[65535:0]
-		reg [39:0] table8[255:0]
-		$readmemh2(table16);
-		$readmemh3(table8);
+		`LOAD16;
+		`LOAD8;
 	end
+	
+	reg `WORD out;
+	assign fpuOut = out;
 	
 	fmul mulf(mulfOut, rd, rs);
 	fadd addf(addfOut, rd, rs);
@@ -201,20 +237,20 @@ module fpu(rd,rs,op,fpuOut);
 	always @* begin
 		case (op)
 			//Math
-			`OPaddf: fpuOut <= addfOut;
-			`OPaddpp: fpuOut <= table16[{rd,rs}][23:16];
-			`OPmulf: fpuOut <= mulfOut;
-			`OPmulpp: fpuOut <= table16[{rd,rs}][15:8];
-			`OPnegf: fpuOut <= rd[15:15] ^ rd[15:15];
-			`OPinvf: fpuOut <= invfOut;
-			`OPinvpp: fpuOut <= {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
+			`OPaddf: out <= addfOut;
+			`OPaddpp: out <= table16[{rd,rs}][23:16];
+			`OPmulf: out <= mulfOut;
+			`OPmulpp: out <= table16[{rd,rs}][15:8];
+			`OPnegf: out <= rd[15:15] ^ rd[15:15];
+			`OPinvf: out <= invfOut;
+			`OPinvpp: out <= {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
 			//Conversion
-			`OPf2i: fpuOut <= f2iOut;
-			`OPf2pp: fpuOut <= table16[{rd,rs}][7:0];
-			`OPi2f: fpuOut <= i2fOut;
-			`OPii2pp: fpuOut <= {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]}
-			`OPpp2f: fpuOut <= table8[rd `LowBits][31:16]
-			`OPpp2ii: fpuOut <= {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]}
+			`OPf2i: out <= f2iOut;
+			`OPf2pp: out <= table16[{rd,rs}][7:0];
+			`OPi2f: out <= i2fOut;
+			`OPii2pp: out <= {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
+			`OPpp2f: out <= table8[rd `LowBits][31:16];
+			`OPpp2ii: out <= {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
 		endcase
 	end
 endmodule
@@ -268,7 +304,7 @@ module alu(rd, rs, op, aluOut);
 				out `LowBits = -rd `LowBits; 
 			end
 			`OPnot: begin out = ~rd; end
-			`OPdup: begin: out = rs; end
+			`OPdup: begin out = rs; end
 		endcase	
 	end
 endmodule
@@ -315,8 +351,8 @@ module processor(halt, reset, clk);
 		ir1 = `NOP;
 		
 		//The following functions read from VMEM?
-		$readmemh0(text);
-		$readmemh1(data);
+		`LOADTEXT;
+		`LOADDATA;
 		//$readmemh2(table16);
 		//$readmemh3(table8);
 	end
@@ -458,14 +494,15 @@ module processor(halt, reset, clk);
 						jump <= 1;
 					end
 				end
-			default: //default cases are handled by ALU or FPU
-				begin
-					if ((op >= `OPi2f) && (op <= `OPnegf)) || ((op >= `OPaddf) && (op <= `OPmulpp))
+			//default: //default cases are handled by ALU or FPU
+				/*begin
+					if (((op >= `OPi2f) && (op <= `OPnegf)) || ((op >= `OPaddf) && (op <= `OPmulpp)));
 						regfile [ir1 `Reg0] <= fpuOut;
-					else
+					else 
 						regfile [ir1 `Reg0] <= aluOut;
+					
 					jump <= 0;
-				end
+				end*/
 		endcase	
 	end
 endmodule 
