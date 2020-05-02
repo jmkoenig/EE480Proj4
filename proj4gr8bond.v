@@ -237,23 +237,42 @@ module fpu(rd,rs,op,fpuOut);
 	always @* begin
 		case (op)
 			//Math
-			`OPaddf: out <= addfOut;
-			`OPaddpp: out <= table16[{rd,rs}][23:16];
-			`OPmulf: out <= mulfOut;
-			`OPmulpp: out <= table16[{rd,rs}][15:8];
-			`OPnegf: out <= rd[15:15] ^ rd[15:15];
-			`OPinvf: out <= invfOut;
-			`OPinvpp: out <= {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
+			`OPaddf: out = addfOut;
+			// commented out 16-bit table usage, as it causes INSANE compile times. Approx. 2 minutes with 1 item enabled, 6 minutes when 2 of the 3 items are enabled.
+			
+			`OPaddpp: 
+				begin 
+					out`HighBits = table16[{rd`HighBits,rs`HighBits}][23:16];
+					out`LowBits = table16[{rd`LowBits,rs`LowBits}] [23:16];
+				end
+			
+			`OPf2pp: 
+				begin
+					out`HighBits = table16[rd][7:0];
+					out`LowBits = table16[rd][7:0];
+				end
+			`OPmulpp: 
+				begin
+					out`HighBits = table16[{rd`HighBits,rs`HighBits}][15:8];
+					out`LowBits = table16[{rd`LowBits,rs`LowBits}] [15:8];
+				end
+			
+			`OPmulf: out = mulfOut;
+			`OPnegf: out = rd[15:15] ^ rd[15:15];
+			`OPinvf: out = invfOut;
+			`OPinvpp: out = {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
 			//Conversion
-			`OPf2i: out <= f2iOut;
-			`OPf2pp: out <= table16[{rd,rs}][7:0];
-			`OPi2f: out <= i2fOut;
-			`OPii2pp: out <= {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
-			`OPpp2f: out <= table8[rd `LowBits][31:16];
-			`OPpp2ii: out <= {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
+			`OPf2i: out = f2iOut;
+			
+			`OPi2f: out = i2fOut;
+			`OPii2pp: out = {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
+			`OPpp2f: out = table8[rd `LowBits][31:16];
+			`OPpp2ii: out = {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
 		endcase
 	end
+	
 endmodule
+
 
 module alu(rd, rs, op, aluOut);
 	input `WORD rd;
@@ -494,15 +513,15 @@ module processor(halt, reset, clk);
 						jump <= 1;
 					end
 				end
-			//default: //default cases are handled by ALU or FPU
-				/*begin
-					if (((op >= `OPi2f) && (op <= `OPnegf)) || ((op >= `OPaddf) && (op <= `OPmulpp)));
-						regfile [ir1 `Reg0] <= fpuOut;
+			default: //default cases are handled by ALU or FPU
+				begin
+					if (((op >= `OPi2f) && (op <= `OPnegf)) || ((op >= `OPaddf) && (op <= `OPmulpp)))
+						regfile[ir1 `Reg0] <= fpuOut;
 					else 
-						regfile [ir1 `Reg0] <= aluOut;
+						regfile[ir1 `Reg0] <= aluOut;
 					
 					jump <= 0;
-				end*/
+				end
 		endcase	
 	end
 endmodule 
