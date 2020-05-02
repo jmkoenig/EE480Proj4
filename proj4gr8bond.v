@@ -185,13 +185,13 @@ module fpu(rd,rs,op,fpuOut);
 	input wire `OPSIZE op;
 	output wire `WORD fpuOut, addfOut, invfOut, f2iOut, i2fOut;
 	wire `WORD mulfOut;
+	reg [23:0] table16[65535:0]
+	reg [39:0] table8[255:0]
 	initial begin
 		$readmemh2(table16);
 		$readmemh3(table8);
 	end
-	reg [23:0] table16[65535:0]
-	reg [39:0] table8a[255:0]
-	reg [39:0] table8b[255:0]
+	
 	fmul mulf(mulfOut, rd, rs);
 	fadd addf(addfOut, rd, rs);
 	frecip invf(invfOut, rd);
