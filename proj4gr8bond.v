@@ -16,14 +16,16 @@ Notes:
 `define LOAD16		$readmemh2(table16)
 `define LOAD8		$readmemh3(table8)
 `define LOADINVF	$readmemh4(look)
+`define DUMP		$dumpfile
 */
 
 //Uncomment for Icarus, comment for CGI
-`define LOADTEXT	$readmemh("text.vmem", text)
-`define LOADDATA	$readmemh("data.vmem", data)
+`define LOADTEXT	$readmemh("gr8bond.text", text)
+`define LOADDATA	$readmemh("gr8bond.data", data)
 `define LOAD16		$readmemh("posit1624.vmem", table16)
 `define LOAD8		$readmemh("posit840.vmem", table8)
 `define LOADINVF	$readmemh("invF.vmem", look)
+`define DUMP		$dumpfile("gr8bond.vcd")
 
 
 // Basic sizes
@@ -238,36 +240,74 @@ module fpu(rd,rs,op,fpuOut);
 		case (op)
 			//Math
 			`OPaddf: out = addfOut;
-			// commented out 16-bit table usage, as it causes INSANE compile times. Approx. 2 minutes with 1 item enabled, 6 minutes when 2 of the 3 items are enabled.
-			
+			// commented out 16-bit table usage, as it causes INSANE compile times. Approx. 2 minutes with 1 item enabled, 6 minutes when 2 of the 3 items are enabled, and about 9 when all three are enabled.
+			/*
 			`OPaddpp: 
 				begin 
 					out`HighBits = table16[{rd`HighBits,rs`HighBits}][23:16];
 					out`LowBits = table16[{rd`LowBits,rs`LowBits}] [23:16];
+					#10$display("addpp %h, %h = %h",rd,rs,out);
 				end
-			
 			`OPf2pp: 
 				begin
 					out`HighBits = table16[rd][7:0];
 					out`LowBits = table16[rd][7:0];
+					#10$display("f2pp %h, %h = %h",rd,rs,out);
 				end
 			`OPmulpp: 
 				begin
 					out`HighBits = table16[{rd`HighBits,rs`HighBits}][15:8];
 					out`LowBits = table16[{rd`LowBits,rs`LowBits}] [15:8];
+					#10$display("mulpp %h, %h = %h",rd,rs,out);
 				end
-			
-			`OPmulf: out = mulfOut;
-			`OPnegf: out = rd[15:15] ^ rd[15:15];
-			`OPinvf: out = invfOut;
-			`OPinvpp: out = {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
+				*/
+			/*`OPmulf:
+				begin
+					out = mulfOut;
+					#10$display("mulf %h, %h = %h",rd,rs,out);
+				end
+			`OPnegf: 
+				begin
+					out = rd[15:15] ^ rd[15:15];
+					#10$display("negf %h = %h",rd,out);
+				end
+			`OPinvf: 
+				begin
+					out = invfOut;
+					#10$display("invf %h = %h",rd,out);
+				end
+			`OPinvpp: 
+				begin
+					out = {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
+					#10$display("invpp %h, %h = %h",rd,rs,out);
+				end
+			*/
 			//Conversion
-			`OPf2i: out = f2iOut;
-			
-			`OPi2f: out = i2fOut;
-			`OPii2pp: out = {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
-			`OPpp2f: out = table8[rd `LowBits][31:16];
-			`OPpp2ii: out = {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
+			`OPf2i: 
+				begin 
+					out = f2iOut;
+					#10$display("f2i %h = %h",rd,out);
+				end
+			`OPi2f: 
+				begin
+					out = i2fOut;
+					#10$display("i2f %h = %h",rd,out);
+				end
+			`OPii2pp: 
+				begin
+					out = {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
+					#10$display("mulf %h, %h = %h",rd,rs,out);
+				end
+			`OPpp2f: 
+				begin
+					out = table8[rd `LowBits][31:16];
+					#10$display("mulf %h, %h = %h",rd,rs,out);
+				end
+			`OPpp2ii: 
+				begin
+					out = {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
+					#10$display("mulf %h, %h = %h",rd,rs,out);
+				end
 		endcase
 	end
 	
@@ -487,6 +527,7 @@ module processor(halt, reset, clk);
 				begin
 					regfile [ir1 `Reg0] <= {{8{ir1[7]}} ,ir1 `Imm8};
 					jump <= 0;
+					//#1$display("",)
 				end
 			`OPcii:
 				begin
@@ -532,7 +573,7 @@ reg clk = 0;
 wire halted;
 processor PE(halted, reset, clk);
 initial begin
-  $dumpfile;
+  `DUMP;
   $dumpvars(0, PE);
   #10 reset = 1;
   #10 reset = 0;
