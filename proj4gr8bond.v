@@ -268,7 +268,8 @@ module fpu(rd,rs,op,fpuOut);
 				end
 			`OPnegf: 
 				begin
-					out = rd[15:15] ^ rd[15:15];
+					// negate MSB of rd and concatenate with rest of rd
+					out = {~rd[15], rd[14:0]};
 					#10$display("negf %h = %h",rd,out);
 				end
 			`OPinvf: 
