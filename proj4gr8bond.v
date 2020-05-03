@@ -47,54 +47,54 @@ Notes:
 `define LowBits		[7:0]
 
 // 4 bit op codes
-`define LdOrSt		1'h4
-`define TrapOrJr	1'h0
-`define OPci8		1'hb
-`define OPcii		1'hc
-`define OPcup		1'hd
-`define OPbz		1'he
-`define OPbnz		1'hf
+`define LdOrSt		4'h4
+`define TrapOrJr	4'h0
+`define OPci8		4'hb
+`define OPcii		4'hc
+`define OPcup		4'hd
+`define OPbz		4'he
+`define OPbnz		4'hf
 
 // 8 bit op codes
-`define OPtrap		2'h00
-`define OPjr 		2'h01
-`define OPnop		2'h02
-`define OPld		2'h40
-`define OPst		2'h41
+`define OPtrap		8'h00
+`define OPjr 		8'h01
+`define OPnop		8'h02
+`define OPld		8'h40
+`define OPst		8'h41
 
 // ALU
-`define OPnot		2'h10
-`define OPanyi		2'h30
-`define OPanyii		2'h31
-`define OPnegi		2'h32
-`define OPnegii		2'h33
-`define OPand		2'h50
-`define OPor		2'h51
-`define OPxor		2'h52
-`define OPdup		2'h53
-`define OPaddi		2'h70
-`define OPaddii		2'h71
-`define OPmuli		2'h72
-`define OPmulii		2'h73
-`define OPshi		2'h74
-`define OPshii		2'h75
-`define OPslti		2'h76
-`define OPsltii		2'h77
+`define OPnot		8'h10
+`define OPanyi		8'h30
+`define OPanyii		8'h31
+`define OPnegi		8'h32
+`define OPnegii		8'h33
+`define OPand		8'h50
+`define OPor		8'h51
+`define OPxor		8'h52
+`define OPdup		8'h53
+`define OPaddi		8'h70
+`define OPaddii		8'h71
+`define OPmuli		8'h72
+`define OPmulii		8'h73
+`define OPshi		8'h74
+`define OPshii		8'h75
+`define OPslti		8'h76
+`define OPsltii		8'h77
 
 // FPU
-`define OPi2f		2'h20
-`define OPii2pp		2'h21
-`define OPf2i		2'h22
-`define OPpp2ii		2'h23
-`define OPinvf		2'h24
-`define OPinvpp		2'h25
-`define OPf2pp		2'h26
-`define OPpp2f		2'h27
-`define OPnegf		2'h28
-`define OPaddf		2'h60
-`define OPaddpp		2'h61
-`define OPmulf		2'h62
-`define OPmulpp		2'h63
+`define OPi2f		8'h20
+`define OPii2pp		8'h21
+`define OPf2i		8'h22
+`define OPpp2ii		8'h23
+`define OPinvf		8'h24
+`define OPinvpp		8'h25
+`define OPf2pp		8'h26
+`define OPpp2f		8'h27
+`define OPnegf		8'h28
+`define OPaddf		8'h60
+`define OPaddpp		8'h61
+`define OPmulf		8'h62
+`define OPmulpp		8'h63
 
 `define NOP		16'b0000001000000001
 
