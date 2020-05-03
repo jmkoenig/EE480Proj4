@@ -219,13 +219,14 @@ module fpu(rd,rs,op,fpuOut);
 	input wire `OPSIZE op;
 	output wire `WORD fpuOut;
 	wire `WORD addfOut, invfOut, f2iOut, i2fOut, mulfOut;
-
+	
 	reg [23:0] table16[65535:0];
 	reg [39:0] table8[255:0];
 	initial begin
 		`LOAD16;
 		`LOAD8;
 	end
+	
 	
 	reg `WORD out;
 	assign fpuOut = out;
@@ -246,69 +247,70 @@ module fpu(rd,rs,op,fpuOut);
 				begin 
 					out`HighBits = table16[{rd`HighBits,rs`HighBits}][23:16];
 					out`LowBits = table16[{rd`LowBits,rs`LowBits}] [23:16];
-					#10$display("addpp %h, %h = %h",rd,rs,out);
+					#1$display("addpp %h, %h = %h",rd,rs,out);
 				end
 			`OPf2pp: 
 				begin
 					out`HighBits = table16[rd][7:0];
 					out`LowBits = table16[rd][7:0];
-					#10$display("f2pp %h, %h = %h",rd,rs,out);
+					#1$display("f2pp %h, %h = %h",rd,rs,out);
 				end
 			`OPmulpp: 
 				begin
 					out`HighBits = table16[{rd`HighBits,rs`HighBits}][15:8];
 					out`LowBits = table16[{rd`LowBits,rs`LowBits}] [15:8];
-					#10$display("mulpp %h, %h = %h",rd,rs,out);
+					#1$display("mulpp %h, %h = %h",rd,rs,out);
 				end
 				*/
-			/*`OPmulf:
+			`OPmulf:
 				begin
 					out = mulfOut;
-					#10$display("mulf %h, %h = %h",rd,rs,out);
+					#1$display("mulf %h, %h = %h",rd,rs,out);
 				end
 			`OPnegf: 
 				begin
 					// negate MSB of rd and concatenate with rest of rd
 					out = {~rd[15], rd[14:0]};
-					#10$display("negf %h = %h",rd,out);
+					#1$display("negf %h = %h",rd,out);
 				end
 			`OPinvf: 
 				begin
 					out = invfOut;
-					#10$display("invf %h = %h",rd,out);
+					#1$display("invf %h = %h",rd,out);
 				end
 			`OPinvpp: 
 				begin
 					out = {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
-					#10$display("invpp %h, %h = %h",rd,rs,out);
+					#1$display("invpp %h, %h = %h",rd,rs,out);
 				end
-			*/
+			
 			//Conversion
 			`OPf2i: 
 				begin 
 					out = f2iOut;
-					#10$display("f2i %h = %h",rd,out);
+					#1$display("f2i %h = %h",rd,out);
 				end
 			`OPi2f: 
 				begin
 					out = i2fOut;
-					#10$display("i2f %h = %h",rd,out);
+					#1$display("i2f %h = %h",rd,out);
 				end
 			`OPii2pp: 
 				begin
 					out = {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
-					#10$display("mulf %h, %h = %h",rd,rs,out);
+					#1$display("ii2pp %h = %h",rd,out);
 				end
 			`OPpp2f: 
 				begin
 					out = table8[rd `LowBits][31:16];
-					#10$display("mulf %h, %h = %h",rd,rs,out);
+					#1$display("pp2f %h = %h",rd,out);
 				end
 			`OPpp2ii: 
 				begin
 					out = {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
-					#10$display("mulf %h, %h = %h",rd,rs,out);
+					#1$display("pp2ii %h = %h",rd,out);
 				end
+			default: begin end
 		endcase
 	end
 	
@@ -364,7 +366,9 @@ module alu(rd, rs, op, aluOut);
 				out `LowBits = -rd `LowBits; 
 			end
 			`OPnot: begin out = ~rd; end
-			`OPdup: begin out = rs; end
+			`OPdup: begin 
+				#1$display("dup %h, %h", rd, rs);
+				out = rs; end
 		endcase	
 	end
 endmodule
@@ -558,7 +562,10 @@ module processor(halt, reset, clk);
 			default: //default cases are handled by ALU or FPU
 				begin
 					if (((op >= `OPi2f) && (op <= `OPnegf)) || ((op >= `OPaddf) && (op <= `OPmulpp)))
-						regfile[ir1 `Reg0] <= fpuOut;
+						begin
+							//$display("opcode %h, entering FPU",op);
+							regfile[ir1 `Reg0] <= fpuOut;
+						end
 					else 
 						regfile[ir1 `Reg0] <= aluOut;
 					
