@@ -261,7 +261,7 @@ module fpu(rd,rs,op,fpuOut);
 					out`LowBits = table16[{rd`LowBits,rs`LowBits}] [15:8];
 					#1$display("mulpp %h, %h = %h",rd,rs,out);
 				end
-				*/
+			*/	
 			`OPmulf:
 				begin
 					out = mulfOut;
@@ -330,13 +330,21 @@ module alu(rd, rs, op, aluOut);
 	//These are the operations 
 	always @* begin 
 		case (op)
-			`OPaddi:  begin out = rd `WORD + rs `WORD; end
+			`OPaddi:  
+				begin 
+					out = rd `WORD + rs `WORD; 
+					#1$display("addi %h + %h = %h", rd, rs, out);
+				end
 			
 			`OPaddii: begin
 				out `HighBits = rd `HighBits + rs `HighBits; 
 				out `LowBits = rd `LowBits + rs `LowBits;
 			end
-			`OPmuli: begin out = rd `WORD * rs `WORD; end
+			`OPmuli: 
+				begin 
+					out = rd `WORD * rs `WORD; 
+					#1$display("muli %h * %h = %h", rd, rs, out);
+				end
 			`OPmulii: begin 
 				out `HighBits = rd `HighBits * rs `HighBits; 
 				out `LowBits = rd `LowBits * rs `LowBits; 
@@ -494,6 +502,7 @@ module processor(halt, reset, clk);
 	
 	//stage 2 starts here
 	always @(posedge clk) begin
+		#1$display("$%d = %h",ir1`Reg0,regfile[ir1 `Reg0]);
 		//State machine case
 		case (s)
 			`TrapOrJr: begin
@@ -532,7 +541,7 @@ module processor(halt, reset, clk);
 				begin
 					regfile [ir1 `Reg0] <= {{8{ir1[7]}} ,ir1 `Imm8};
 					jump <= 0;
-					//#1$display("",)
+					#1$display("ci8 $%d, %h",ir1 `Reg0, ir1 `Imm8);
 				end
 			`OPcii:
 				begin
@@ -544,6 +553,7 @@ module processor(halt, reset, clk);
 				begin
 					regfile [ir1 `Reg0] `HighBits <= ir1 `Imm8;
 					jump <= 0;
+					#1$display("cup $%d, %h",ir1 `Reg0, ir1 `Imm8);
 				end
 			`OPbz:
 				begin
@@ -572,7 +582,9 @@ module processor(halt, reset, clk);
 					jump <= 0;
 				end
 		endcase	
+		
 	end
+	
 endmodule 
 
 module testbench;

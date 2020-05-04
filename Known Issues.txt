@@ -1,0 +1,5 @@
+Known:
+	Numbers treated as negative when 8s place is 1
+
+Still narrowing down reproduction:
+	r1 goes to 0x2020 or 0x20 under conditions that I can't nail down.
