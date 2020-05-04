@@ -40,8 +40,8 @@ Notes:
 `define OP		[15:8]
 `define Op0		[15:12]
 `define Op1		[11:8]
-`define Reg0		[3:0]
-`define Reg1		[7:4]
+`define RD		[3:0]
+`define RS		[7:4]
 `define Imm8		[11:4]
 `define HighBits	[15:8]
 `define LowBits		[7:0]
@@ -457,7 +457,7 @@ module processor(halt, reset, clk);
 	always @(posedge clk) begin
 		tpc = (jump ? target : pc);
 		if ((ir0 != `NOP) && setsrd(ir1) && 
-		   ((usesrd(ir0) && (ir0 `Reg0 == ir1 `Reg0)) || (usesrs(ir0) && (ir0 `Reg1 == ir1 `Reg0)))) begin
+		    ((usesrd(ir0) && (ir0 `RD == ir1 `RD)) || (usesrs(ir0) && (ir0 `RS == ir1 `RD)))) begin
     			// blocked by stage 1, so don't increment
    			pc <= tpc;
   		end else begin
@@ -477,14 +477,14 @@ module processor(halt, reset, clk);
 	//start of stage 1
 	always @(posedge clk) begin
 		if((ir0 != `NOP) && setsrd(ir1) && 
-		   ((usesrd(ir0) && (ir0 `Reg0 == ir1 `Reg0)) || (usesrs(ir0) && (ir0 `Reg1 == ir1 `Reg0)))) begin
+		   ((usesrd(ir0) && (ir0 `RD == ir1 `RD)) || (usesrs(ir0) && (ir0 `RS == ir1 `RD)))) begin
 			wait1 = 1;
 			ir1 <= `NOP;
 		//no conflict
 		end else begin
 			wait1 = 0;
-			rd1 <= regfile[ir0 `Reg0];
-			rs1 <= regfile[ir0 `Reg1];
+			rd1 <= regfile[ir0 `RD];
+			rs1 <= regfile[ir0 `RS];
 			ir1 <= ir0;
 			op <= {ir0 `Op0, ir0 `Op1};
 			s  <= ir0 `Op0;
@@ -518,31 +518,31 @@ module processor(halt, reset, clk);
 					case (op)
 						`OPld:
 							begin
-								regfile [ir1 `Reg0] <= data[rs1];
+								regfile [ir1 `RD] <= data[rs1];
 								jump <= 0;
 							end
 						`OPst:
 							begin
-								data[regfile [ir1 `Reg1]] = rd1;
+								data[regfile [ir1 `RS]] = rd1;
 								jump <= 0;
 							end
 					endcase
 				end
 			`OPci8:
 				begin
-					regfile [ir1 `Reg0] <= {{8{ir1[7]}} ,ir1 `Imm8};
+					regfile [ir1 `RD] <= {{8{ir1[7]}} ,ir1 `Imm8};
 					jump <= 0;
 					//#1$display("",)
 				end
 			`OPcii:
 				begin
-					regfile [ir1 `Reg0] `HighBits <= ir1 `Imm8;
-					regfile [ir1 `Reg0] `LowBits <= ir1 `Imm8;
+					regfile [ir1 `RD] `HighBits <= ir1 `Imm8;
+					regfile [ir1 `RD] `LowBits <= ir1 `Imm8;
 					jump <= 0;
 				end
 			`OPcup:
 				begin
-					regfile [ir1 `Reg0] `HighBits <= ir1 `Imm8;
+					regfile [ir1 `RD] `HighBits <= ir1 `Imm8;
 					jump <= 0;
 				end
 			`OPbz:
@@ -564,10 +564,10 @@ module processor(halt, reset, clk);
 					if (((op >= `OPi2f) && (op <= `OPnegf)) || ((op >= `OPaddf) && (op <= `OPmulpp)))
 						begin
 							//$display("opcode %h, entering FPU",op);
-							regfile[ir1 `Reg0] <= fpuOut;
+							regfile[ir1 `RD] <= fpuOut;
 						end
 					else 
-						regfile[ir1 `Reg0] <= aluOut;
+						regfile[ir1 `RD] <= aluOut;
 					
 					jump <= 0;
 				end
