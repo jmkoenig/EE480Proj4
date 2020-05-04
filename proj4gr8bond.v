@@ -441,13 +441,13 @@ module processor(halt, reset, clk);
 		&& (inst `OP != `OPnop);
 	endfunction
 	
-	//check if rd is used
+	//check if rs is used
 	function usesrs;
 	input `WORD inst;
 		usesrs = !((inst `OP != `OPaddi) && (inst `OP != `OPaddii) && (inst `OP != `OPaddf) && (inst `OP != `OPaddpp) && 
 			(inst `OP != `OPld) && (inst `OP != `OPand) && (inst `OP != `OPmuli) && (inst `OP != `OPmulii) && 
 			(inst `OP != `OPmulf) && (inst `OP != `OPmulpp) && (inst `OP != `OPshi) && (inst `OP != `OPshii) && 
-		   	(inst `OP != `OPslti) && (inst `OP != `OPst) && (inst `OP != `OPxor));
+			   (inst `OP != `OPslti) && (inst `OP != `OPst) && (inst `OP != `OPxor) && (inst `OP != `OPdup));
 	endfunction
 	
 	//is pc changing
