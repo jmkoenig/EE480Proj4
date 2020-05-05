@@ -472,12 +472,12 @@ module processor(halt, reset, clk);
    			pc <= tpc;
   		end else begin
    			// not blocked by stage 1
-  			ir = text[tpc];
+  			ir <= text[tpc];
 			if(pendpc) begin
 				ir0 <= `NOP;
      				pc <= tpc;
 			end else begin
-				ir0 <= ir;
+				ir0 <= text[tpc];
 				pc <= tpc + 1;
 			end
 		end
