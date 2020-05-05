@@ -20,8 +20,8 @@ Notes:
 */
 
 //Uncomment for Icarus, comment for CGI
-`define LOADTEXT	$readmemh("gr8bond.text", text)
-`define LOADDATA	$readmemh("gr8bond.data", data)
+`define LOADTEXT	$readmemh("fpu_test.text", text)
+`define LOADDATA	$readmemh("fpu_test.data", data)
 `define LOAD16		$readmemh("posit1624.vmem", table16)
 `define LOAD8		$readmemh("posit840.vmem", table8)
 `define LOADINVF	$readmemh("invF.vmem", look)
@@ -40,7 +40,7 @@ Notes:
 `define FCNCODELOC  [11:8]
 `define RDLOC 		[3:0]
 `define RSLOC 		[7:4]	
-`define IMMEDIATELOC[11:4]
+`define IMMEDIATELOC	[11:4]
 
 //WHAT REGISTERS ARE WHAT
 `define AT          [11]
@@ -80,7 +80,7 @@ Notes:
 `define FCNaddpp	4'h1
 `define FCNmulf		4'h2
 `define FCNmulpp	4'h3
-`define FCNnegf		4'h4
+
 //OPBITWISE
 `define FCNand		4'h0
 `define FCNor 		4'h1
@@ -102,6 +102,7 @@ Notes:
 `define FCNinvpp	4'h5
 `define FCNf2pp		4'h6
 `define FCNpp2f		4'h7
+`define FCNnegf		4'h8
 //OPOTHER
 `define FCNnot		4'h0  //use rd
 `define FCNjr		4'h1
@@ -227,10 +228,10 @@ assign f `FSIGN = i[15];
 assign f `FEXP = (i ? (128 + (14 - lead)) : 0);
 endmodule
 
-module fpu(rd,rs,op,fpuOut);
+module fpu(rd,rs,op,fn,fpuOut);
 	input `WORD rd;
 	input wire `WORD rs;
-	input wire `OPSIZE op;
+	input wire `OPSIZE op, fn;
 	output wire `WORD fpuOut;
 	wire `WORD addfOut, invfOut, f2iOut, i2fOut, mulfOut;
 	
@@ -269,7 +270,9 @@ module fpu(rd,rs,op,fpuOut);
 `define FCNmulpp	4'h3
 */
 	always @* begin
-		case (op)
+		case(op)
+		`OPPOSITS:
+			case (fn)
 			//Math
 			// commented out 16-bit table usage, as it causes INSANE compile times. Approx. 2 minutes with 1 item enabled, 6 minutes when 2 of the 3 items are enabled, and about 9 when all three are enabled.
 			/*
@@ -279,12 +282,8 @@ module fpu(rd,rs,op,fpuOut);
 					out`LowBits = table16[{rd`LowBits,rs`LowBits}] [23:16];
 					#1$display("addpp %h, %h = %h",rd,rs,out);
 				end
-			`FCNf2pp: 
-				begin
-					out`HighBits = table16[rd][7:0];
-					out`LowBits = table16[rd][7:0];
-					#1$display("f2pp %h, %h = %h",rd,rs,out);
-				end
+				
+			
 			`FCNmulpp: 
 				begin
 					out`HighBits = table16[{rd`HighBits,rs`HighBits}][15:8];
@@ -295,7 +294,7 @@ module fpu(rd,rs,op,fpuOut);
 			`FCNaddf:
 				begin
 					out = addfOut;
-					#1$display("mulf %h, %h = %h",rd,rs,out);
+					#1$display("addf %h, %h = %h",rd,rs,out);
 				end
 			`FCNmulf:
 				begin
@@ -318,35 +317,48 @@ module fpu(rd,rs,op,fpuOut);
 					out = {table8[rd `HighBits][39:32], table8[rd `LowBits][39:32]};
 					#1$display("invpp %h, %h = %h",rd,rs,out);
 				end
-			
+			endcase
+				
 			//Conversion
-			`FCNf2i: 
-				begin 
-					out = f2iOut;
-					#1$display("f2i %h = %h",rd,out);
-				end
-			`FCNi2f: 
-				begin
-					out = i2fOut;
-					#1$display("i2f %h = %h",rd,out);
-				end
-			`FCNii2pp: 
-				begin
-					out = {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
-					#1$display("ii2pp %h = %h",rd,out);
-				end
-			`FCNpp2f: 
-				begin
-					out = table8[rd `LowBits][31:16];
-					#1$display("pp2f %h = %h",rd,out);
-				end
-			`FCNpp2ii: 
-				begin
-					out = {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
-					#1$display("pp2ii %h = %h",rd,out);
-				end
-			default: begin end
-		endcase
+		`OPCONVERT:
+				case(fn)
+				/*
+				`FCNf2pp: 
+					begin
+						out`HighBits = table16[rd][7:0];
+						out`LowBits = table16[rd][7:0];
+						#1$display("f2pp %h, %h = %h",rd,rs,out);
+					end
+				*/
+				
+				`FCNf2i: 
+					begin 
+						out = f2iOut;
+						#1$display("f2i %h = %h",rd,out);
+					end
+				`FCNi2f: 
+					begin
+						out = i2fOut;
+						#1$display("i2f %h = %h",rd,out);
+					end
+				`FCNii2pp: 
+					begin
+						out = {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
+						#1$display("ii2pp %h = %h",rd,out);
+					end
+				`FCNpp2f: 
+					begin
+						out = table8[rd `LowBits][31:16];
+						#1$display("pp2f %h = %h",rd,out);
+					end
+				`FCNpp2ii: 
+					begin
+						out = {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
+						#1$display("pp2ii %h = %h",rd,out);
+					end
+				endcase
+			endcase
+		end
 	end
 	
 endmodule
@@ -368,7 +380,7 @@ wire stall;
 reg goingToHalt;
 wire `WORD fpuOut;
 
-fpu myfpu(rd, rs, instructionReg1`FCNCODELOC, fpuOut);
+fpu myfpu(rd, rs, instructionReg2`OPCODELOC,instructionReg2`FCNCODELOC, fpuOut);
 
 function setsPC;
 input `WORD inst;
@@ -381,8 +393,7 @@ endfunction
 //needs to check if we need to stall
 function usesSameRD;
 input `WORD inst1, inst2;
-usesSameRD = (((inst1 `RDLOC == inst2 `RDLOC) || (inst1 `RDLOC == inst2 `RSLOC) || (inst1 `RSLOC == inst2 `RDLOC)) &&
-              ((inst1 `OPCODELOC != `NOP) && (inst2 `OPCODELOC != `NOP)));
+usesSameRD = (((inst1 `RDLOC == inst2 `RDLOC) || (inst1 `RDLOC == inst2 `RSLOC) || (inst1 `RSLOC == inst2 `RDLOC)) && ((inst1 `OPCODELOC != `NOP) && (inst2 `OPCODELOC != `NOP)));
 endfunction
 
 // pending PC update?
@@ -474,24 +485,33 @@ always @ (posedge clk) begin
 				end
 			end
     `OPbnz : begin 
+    			$display("bnz");
 				if(rd != 0) begin 
+					$display("taken");
 					result <= pc1 + instructionReg1 `IMMEDIATELOC - 1;
 				end	else begin
+					$display("not taken");
 					result <= pc1;
 				end
 			end
-/*    `OPci8 : begin if(instructionReg1 `IMMEDIATELOC[7] == 0) result[15:8] <= 8'h00;
+/*	`OPci8 : begin if(instructionReg1 `IMMEDIATELOC[7] == 0) result[15:8] <= 8'h00;
 	               else result[15:8] <= 8'hff;
 				   result[7:0] <= instructionReg1 `IMMEDIATELOC; 
 				    end 
-*/    `OPcii : begin result[7:0] <= instructionReg1 `IMMEDIATELOC;
+*/	
+	`OPcii : begin result[7:0] <= instructionReg1 `IMMEDIATELOC;
                    result[15:8] <= instructionReg1 `IMMEDIATELOC;
+                   $display("cii");
                     end
-    `OPcup : begin result[15:8] <= instructionReg1 `IMMEDIATELOC;  end
+    `OPcup : begin 
+    	result[15:8] <= instructionReg1 `IMMEDIATELOC;  
+    	#1$display("cup");
+    	end
 	
 	
     // Codes with Functions
     `OPINTS : begin 
+    			#1$display("opints");
                 case(instructionReg1 `FCNCODELOC)
 					`FCNaddi : begin
 						result <= rd + rs; 
@@ -523,14 +543,18 @@ always @ (posedge clk) begin
 						else
 							result[7:0] <= rd[7:0] >> -rs[7:0];	
 							end
-					`FCNslti : begin result <= rd < rs;
-						 end
+					`FCNslti : begin 
+						result <= rd < rs;
+						$display("slti");
+						end
 					`FCNsltii : begin 
 						result[15:8] <= rd[15:8] < rs[15:8];
 						result[7:0] <= rd[7:0] < rs[7:0];
+						$display("sltii");
 						 end
 					`FCNdup : begin
 						result <= rs;
+						$display("dup");
 						end
 					
 					default : begin goingToHalt <= 1; end
@@ -607,7 +631,7 @@ always @ (posedge clk) begin
 
 	
     `OPCONVERT : begin result <= fpuOut; end
-	`OPPOSITS : begin result <= fpuOut end
+	`OPPOSITS : begin result <= fpuOut; end
 	
 	
     default : begin goingToHalt <= 1; end
