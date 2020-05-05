@@ -378,7 +378,7 @@ wire stall;
 reg goingToHalt;
 wire `WORD fpuOut;
 
-fpu myfpu(rd, rs, instructionReg2`OPCODELOC,instructionReg2`FCNCODELOC, fpuOut);
+fpu myfpu(rd, rs, instructionReg1`OPCODELOC,instructionReg1`FCNCODELOC, fpuOut);
 
 function setsPC;
 input `WORD inst;
@@ -461,14 +461,14 @@ always @ (posedge clk) begin
 		instructionReg1 <= instructionReg0;
 		pc1 <= pc0;
 	end
-	$display("Stage 1: %h, %d",instructionReg0, pc1);
+	//$display("Stage 1: %h, %d",instructionReg0, pc1);
 end
 
 //Stage 2: ALU/Mem
 //owns result, instructionReg2, and mem block
 //does math and writes to mem
 always @ (posedge clk) begin
-	$display("Stage 2: %h, %d", instructionReg1, pc1);
+	//$display("Stage 2: %h, %d", instructionReg1, pc1);
 	instructionReg2 <= instructionReg1;
 	case(instructionReg1 `OPCODELOC)
     // Dummy codes
@@ -630,7 +630,11 @@ always @ (posedge clk) begin
 			   end
 
 	
-    `OPCONVERT : begin result <= fpuOut; end
+    `OPCONVERT : 
+    	begin 
+    		result <= fpuOut; 
+    		$display("convert");
+    	end
 	`OPPOSITS : begin result <= fpuOut; end
 	
 	
