@@ -52,10 +52,10 @@ pp2ii $r4 ; r4=0x0101
 dup $r5, $r4
 negii $r5
 addii $r5, $r4 ; r5=0
-bz $r5, fp
+bz $r5, fps
 trap
 
-fp:
+fps:
 f2pp $r2 ; (r2 still -1/3)
 pp2f $r2
 dup $r3, $r2 ; r3=-1/3
