@@ -321,44 +321,42 @@ module fpu(rd,rs,op,fn,fpuOut);
 				
 			//Conversion
 		`OPCONVERT:
-				case(fn)
-				/*
-				`FCNf2pp: 
-					begin
-						out`HighBits = table16[rd][7:0];
-						out`LowBits = table16[rd][7:0];
-						#1$display("f2pp %h, %h = %h",rd,rs,out);
-					end
-				*/
-				
-				`FCNf2i: 
-					begin 
-						out = f2iOut;
-						#1$display("f2i %h = %h",rd,out);
-					end
-				`FCNi2f: 
-					begin
-						out = i2fOut;
-						#1$display("i2f %h = %h",rd,out);
-					end
-				`FCNii2pp: 
-					begin
-						out = {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
-						#1$display("ii2pp %h = %h",rd,out);
-					end
-				`FCNpp2f: 
-					begin
-						out = table8[rd `LowBits][31:16];
-						#1$display("pp2f %h = %h",rd,out);
-					end
-				`FCNpp2ii: 
-					begin
-						out = {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
-						#1$display("pp2ii %h = %h",rd,out);
-					end
-				endcase
+			case(fn)
+			/*
+			`FCNf2pp: 
+				begin
+					out`HighBits = table16[rd][7:0];
+					out`LowBits = table16[rd][7:0];
+					#1$display("f2pp %h, %h = %h",rd,rs,out);
+				end
+			*/
+			`FCNf2i: 
+				begin 
+					out = f2iOut;
+					#1$display("f2i %h = %h",rd,out);
+				end
+			`FCNi2f: 
+				begin
+					out = i2fOut;
+					#1$display("i2f %h = %h",rd,out);
+				end
+			`FCNii2pp: 
+				begin
+					out = {table8[rd `HighBits][7:0], table8[rd `LowBits][7:0]};
+					#1$display("ii2pp %h = %h",rd,out);
+				end
+			`FCNpp2f: 
+				begin
+					out = table8[rd `LowBits][31:16];
+					#1$display("pp2f %h = %h",rd,out);
+				end
+			`FCNpp2ii: 
+				begin
+					out = {table8[rd `HighBits][15:8], table8[rd `LowBits][15:8]};
+					#1$display("pp2ii %h = %h",rd,out);
+				end
 			endcase
-		end
+		endcase
 	end
 	
 endmodule
@@ -463,13 +461,14 @@ always @ (posedge clk) begin
 		instructionReg1 <= instructionReg0;
 		pc1 <= pc0;
 	end
-	//$display("Stage 1: %h, %d",instructionReg0, pc1);
+	$display("Stage 1: %h, %d",instructionReg0, pc1);
 end
 
 //Stage 2: ALU/Mem
 //owns result, instructionReg2, and mem block
 //does math and writes to mem
 always @ (posedge clk) begin
+	$display("Stage 2: %h, %d", instructionReg1, pc1);
 	instructionReg2 <= instructionReg1;
 	case(instructionReg1 `OPCODELOC)
     // Dummy codes
@@ -499,13 +498,14 @@ always @ (posedge clk) begin
 				   result[7:0] <= instructionReg1 `IMMEDIATELOC; 
 				    end 
 */	
-	`OPcii : begin result[7:0] <= instructionReg1 `IMMEDIATELOC;
-                   result[15:8] <= instructionReg1 `IMMEDIATELOC;
-                   $display("cii");
-                    end
+	`OPcii : begin 
+			result[7:0] <= instructionReg1 `IMMEDIATELOC;
+		    result[15:8] <= instructionReg1 `IMMEDIATELOC;
+		    $display("cii");
+        end
     `OPcup : begin 
-    	result[15:8] <= instructionReg1 `IMMEDIATELOC;  
-    	#1$display("cup");
+			result[15:8] <= instructionReg1 `IMMEDIATELOC;  
+			#1$display("cup");
     	end
 	
 	
