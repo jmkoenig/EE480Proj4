@@ -605,10 +605,10 @@ always @ (posedge clk) begin
 
 			   end
 
-	//dont need to implement
-    `OPCONVERT : begin goingToHalt <= 1; end
-	`OPPOSITS : begin goingToHalt <= 1; end
-	//dont need to implement
+	
+    `OPCONVERT : begin result <= fpuOut; end
+	`OPPOSITS : begin result <= fpuOut end
+	
 	
     default : begin goingToHalt <= 1; end
     endcase
