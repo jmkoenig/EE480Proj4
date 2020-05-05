@@ -20,8 +20,8 @@ Notes:
 */
 
 //Uncomment for Icarus, comment for CGI
-`define LOADTEXT	$readmemh("fpu_test.text", text)
-`define LOADDATA	$readmemh("fpu_test.data", data)
+`define LOADTEXT	$readmemh("text.vmem", text)
+`define LOADDATA	$readmemh("data.vmem", data)
 `define LOAD16		$readmemh("posit1624.vmem", table16)
 `define LOAD8		$readmemh("posit840.vmem", table8)
 `define LOADINVF	$readmemh("invF.vmem", look)
@@ -514,16 +514,20 @@ always @ (posedge clk) begin
     			#1$display("opints");
                 case(instructionReg1 `FCNCODELOC)
 					`FCNaddi : begin
+						$display("addi");
 						result <= rd + rs; 
 						 end
 					`FCNaddii : begin
+						$display("addii");
 						result[15:8] <= rd[15:8] + rs[15:8];
 						result[7:0] <= rd[7:0] + rs[7:0]; 
 						 end
 					`FCNmuli : begin 
+						$display("muli");
 						result <= rd * rs; 
 						 end
 					`FCNmulii : begin 
+						$display("mulii");
 						result[15:8] <= rd[15:8] * rs[15:8];
 						result[7:0] <= rd[7:0] * rs[7:0]; 
 						 end
@@ -590,9 +594,11 @@ always @ (posedge clk) begin
 							else rd[7:0] <= -1;
 							 end
 						`FCNnegi : begin 
+							$display("negi");
 							result <= -rd;
 							 end
 						`FCNnegii : begin 
+							$display("negii");
 							result[15:8] <= -rd[15:8];
 							result[7:0] <= -rd[7:0];
 							 end
