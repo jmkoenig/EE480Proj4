@@ -416,6 +416,8 @@ module processor(halt, reset, clk);
 		pc1 = 0;
 		//state is NOP
 		s = `TrapOrJr;
+		// initialize op with opcode of NOP
+		op = `NOP `OP;
 		jump = 0;
 		rd1 = 0;
 		rs1 = 0;
