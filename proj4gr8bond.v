@@ -414,8 +414,11 @@ module processor(halt, reset, clk);
 		pc = 0;
 		pc0 = 0;
 		pc1 = 0;
+		tpc = 0;
 		//state is NOP
 		s = `TrapOrJr;
+		// initialize op with opcode of NOP
+		op = `OPnop;
 		jump = 0;
 		rd1 = 0;
 		rs1 = 0;
@@ -461,19 +464,19 @@ module processor(halt, reset, clk);
 	
 	//start of state 0
 	always @(posedge clk) begin
-		tpc = (jump ? target : pc);
+		tpc <= (jump ? target : pc);
 		if ((ir0 != `NOP) && setsrd(ir1) && 
 		    ((usesrd(ir0) && (ir0 `RD == ir1 `RD)) || (usesrs(ir0) && (ir0 `RS == ir1 `RD)))) begin
     			// blocked by stage 1, so don't increment
    			pc <= tpc;
   		end else begin
    			// not blocked by stage 1
-  			ir = text[tpc];
+  			ir <= text[tpc];
 			if(pendpc) begin
 				ir0 <= `NOP;
      				pc <= tpc;
 			end else begin
-				ir0 <= ir;
+				ir0 <= text[tpc];
 				pc <= tpc + 1;
 			end
 		end
@@ -484,7 +487,7 @@ module processor(halt, reset, clk);
 	always @(posedge clk) begin
 		if((ir0 != `NOP) && setsrd(ir1) && 
 		   ((usesrd(ir0) && (ir0 `RD == ir1 `RD)) || (usesrs(ir0) && (ir0 `RS == ir1 `RD)))) begin
-			wait1 = 1;
+			wait1 <= 1;
 			ir1 <= `NOP;
 		//no conflict
 		end else begin
@@ -500,6 +503,10 @@ module processor(halt, reset, clk);
 	
 	//stage 2 starts here
 	always @(posedge clk) begin
+<<<<<<< HEAD
+=======
+		#1$display("$%d = %h",ir1`RD,regfile[ir1 `RD]);
+>>>>>>> d5f940306911aa5067219c45006144bc55a0f53e
 		//State machine case
 		case (s)
 			`TrapOrJr: begin
@@ -529,7 +536,7 @@ module processor(halt, reset, clk);
 							end
 						`OPst:
 							begin
-								data[regfile [ir1 `RS]] = rd1;
+								data[regfile [ir1 `RS]] <= rd1;
 								jump <= 0;
 							end
 					endcase
@@ -538,7 +545,11 @@ module processor(halt, reset, clk);
 				begin
 					regfile [ir1 `RD] <= {{8{ir1[7]}} ,ir1 `Imm8};
 					jump <= 0;
+<<<<<<< HEAD
 					#1$display("ci8 $%d, %h",ir1`RD, ir1 `Imm8);
+=======
+					#1$display("ci8 $%d, %h",ir1 `RD, ir1 `Imm8);
+>>>>>>> d5f940306911aa5067219c45006144bc55a0f53e
 				end
 			`OPcii:
 				begin
