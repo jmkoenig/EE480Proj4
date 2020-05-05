@@ -607,7 +607,7 @@ always @ (posedge clk) begin
 
 	
     `OPCONVERT : begin result <= fpuOut; end
-	`OPPOSITS : begin result <= fpuOut end
+	`OPPOSITS : begin result <= fpuOut; end
 	
 	
     default : begin goingToHalt <= 1; end
