@@ -465,14 +465,14 @@ module processor(halt, reset, clk);
 	
 	//start of state 0
 	always @(posedge clk) begin
-		tpc = (jump ? target : pc);
+		tpc <= (jump ? target : pc);
 		if ((ir0 != `NOP) && setsrd(ir1) && 
 		    ((usesrd(ir0) && (ir0 `RD == ir1 `RD)) || (usesrs(ir0) && (ir0 `RS == ir1 `RD)))) begin
     			// blocked by stage 1, so don't increment
    			pc <= tpc;
   		end else begin
    			// not blocked by stage 1
-  			ir = text[tpc];
+  			ir <= text[tpc];
 			if(pendpc) begin
 				ir0 <= `NOP;
      				pc <= tpc;
@@ -488,7 +488,7 @@ module processor(halt, reset, clk);
 	always @(posedge clk) begin
 		if((ir0 != `NOP) && setsrd(ir1) && 
 		   ((usesrd(ir0) && (ir0 `RD == ir1 `RD)) || (usesrs(ir0) && (ir0 `RS == ir1 `RD)))) begin
-			wait1 = 1;
+			wait1 <= 1;
 			ir1 <= `NOP;
 		//no conflict
 		end else begin
@@ -534,7 +534,7 @@ module processor(halt, reset, clk);
 							end
 						`OPst:
 							begin
-								data[regfile [ir1 `RS]] = rd1;
+								data[regfile [ir1 `RS]] <= rd1;
 								jump <= 0;
 							end
 					endcase
