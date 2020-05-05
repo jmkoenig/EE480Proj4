@@ -422,11 +422,9 @@ module processor(halt, reset, clk);
 		ir0 = `NOP;
 		ir1 = `NOP;
 		
-		//The following functions read from VMEM?
+		//Load vmem files. See beginning of this file for the macros.
 		`LOADTEXT;
 		`LOADDATA;
-		//$readmemh2(table16);
-		//$readmemh3(table8);
 	end
 	
 	//checks if the destination register is set
@@ -502,7 +500,6 @@ module processor(halt, reset, clk);
 	
 	//stage 2 starts here
 	always @(posedge clk) begin
-		#1$display("$%d = %h",ir1`Reg0,regfile[ir1 `Reg0]);
 		//State machine case
 		case (s)
 			`TrapOrJr: begin
@@ -541,7 +538,7 @@ module processor(halt, reset, clk);
 				begin
 					regfile [ir1 `RD] <= {{8{ir1[7]}} ,ir1 `Imm8};
 					jump <= 0;
-					#1$display("ci8 $%d, %h",ir1 `Reg0, ir1 `Imm8);
+					#1$display("ci8 $%d, %h",ir1`RD, ir1 `Imm8);
 				end
 			`OPcii:
 				begin
@@ -553,7 +550,7 @@ module processor(halt, reset, clk);
 				begin
 					regfile [ir1 `RD] `HighBits <= ir1 `Imm8;
 					jump <= 0;
-					#1$display("cup $%d, %h",ir1 `Reg0, ir1 `Imm8);
+					#1$display("cup $%d, %h",ir1 `RD, ir1 `Imm8);
 				end
 			`OPbz:
 				begin
